@@ -7,14 +7,18 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main_app ./cmd/api/main.go
-RUN go build -o migrate_tool ./cmd/migrate/main.go 
+RUN  CGO_ENABLED=0 go build -o main_app ./cmd/api/main.go
+RUN  CGO_ENABLED=0 go build -o migrate_tool ./cmd/migrate/main.go 
 
 FROM alpine:latest 
+
+RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /build/main_app .
 COPY --from=builder /build/migrate_tool .
 
 COPY db/migrations ./db/migrations
 
-CMD ["EXPOSE 5050" "./main_app"]
+EXPOSE 5050
+
+CMD ["./main_app"]
