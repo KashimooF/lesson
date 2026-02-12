@@ -3,28 +3,38 @@ package database
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 )
 
-func ConnectionDb() error {
+func CloseDb(conn *pgx.Conn) {
+	conn.Close(context.Background())
+}
+
+func ConnectionDb() (*pgx.Conn, error) {
+
+	dsn := os.Getenv("DATABASE_URL")
+
+	if dsn == "" {
+		return nil, fmt.Errorf("DATABASE_URL environment variable is not set")
+	}
 
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, "postgres://postgres:100@localhost:5432/postgres")
+	conn, err := pgx.Connect(ctx, dsn)
 
 	if err != nil {
-
-		fmt.Println("Не удалось подкючиться к базе данных", err)
+		return nil, err
 	}
 
 	//проверка запросов к базе данных
 	if err := conn.Ping(ctx); err != nil {
 
-		return err
+		return nil, err
 	}
 
 	fmt.Println("Подключение к базе данных прошло успешно")
 
-	return nil
+	return conn, nil
 }

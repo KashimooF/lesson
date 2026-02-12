@@ -5,22 +5,26 @@ services:
       - "5432:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data #для сохранений данных после перезагрузки bd
+    env_file:
+      - .env 
     environment:
-      POSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: "100" 
-      DATABASE_URL: postgres://postgres:100@db:5432/schedule_db?sslmode=disable
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     healthcheck: #  Автоматически проверяет работаспособность приложения внутри контейнера 
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
   migrate:
     build: .
     command: ./migrate_tool
+    env_file:
+      - .env 
     environment:
-      OSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: "100" 
-      DATABASE_URL: postgres://postgres:100@db:5432/schedule_db?sslmode=disable
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL}
     depends_on: #ждет пока выполниться bd
       db:
         condition: service_healthy
@@ -28,12 +32,16 @@ services:
     build: .
     ports:
       - "5050:5050"
+    env_file:
+      - .env
     environment:
-      OSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: "100" 
-      DATABASE_URL: postgres://postgres:100@db:5432/schedule_db?sslmode=disable
+      POSTGRES_USER: ${POSTGRES_USER} 
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL}
     depends_on:  #ждет пока выполниться мигратор
       migrate:
         condition: service_completed_successfully 
 volumes:
     postgres_data:
+
+
