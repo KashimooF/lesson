@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS Teachers_subjects;
+DROP TABLE IF EXISTS Schedules;
+DROP TABLE IF EXISTS Teachers;
+DROP TABLE IF EXISTS Subjects;
+DROP TABLE IF EXISTS Groups;
+DROP TABLE IF EXISTS schema_migrations;

@@ -24,7 +24,7 @@ type Schedule struct {
 	NumberPar  int `db:"number_par"`
 	WeekType   int `db:"week_type"`
 }
-type Teachers_subject struct {
+type TeachersSubject struct {
 	ID         int `db:"id"`
 	TeachersId int `db:"teachers_id"`
 	SubjectsId int `db:"subjects_id"`
