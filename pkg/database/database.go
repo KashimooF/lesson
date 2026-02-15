@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CloseDb(conn *pgx.Conn) {
-	conn.Close(context.Background())
+func CloseDb(pool *pgxpool.Pool) {
+	pool.Close()
 }
 
-func ConnectionDb() (*pgx.Conn, error) {
+func ConnectionDb() (*pgxpool.Pool, error) {
 
 	dsn := os.Getenv("DATABASE_URL")
 
@@ -22,19 +22,19 @@ func ConnectionDb() (*pgx.Conn, error) {
 
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, dsn)
+	pool, err := pgxpool.New(ctx, dsn)
 
 	if err != nil {
 		return nil, err
 	}
 
 	//проверка запросов к базе данных
-	if err := conn.Ping(ctx); err != nil {
+	if err := pool.Ping(ctx); err != nil {
 
 		return nil, err
 	}
 
 	fmt.Println("Подключение к базе данных прошло успешно")
 
-	return conn, nil
+	return pool, nil
 }
