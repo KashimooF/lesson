@@ -27,6 +27,18 @@ func (p *PostgresRepo) CreateGroup(ctx context.Context, name string, course int)
 
 	return id, nil
 }
+func (p *PostgresRepo) GetGroupByName(ctx context.Context, name string) (models.Group, error) {
+	var nameGr models.Group
+
+	query := "SELECT name_group FROM Groups WHERE name_group = $1"
+
+	if err := p.db.QueryRow(ctx, query, name).Scan(&nameGr.ID, &nameGr.NameGroup, &nameGr.Course); err != nil {
+
+		return models.Group{}, err
+	}
+
+	return nameGr, nil
+}
 func (p *PostgresRepo) GetGroupByID(ctx context.Context, id int) (models.Group, error) {
 
 	var gr models.Group
@@ -49,7 +61,7 @@ func (p *PostgresRepo) GetAllGroup(ctx context.Context) ([]models.Group, error) 
 	rows, err := p.db.Query(ctx, query)
 
 	if err != nil {
-		return []models.Group{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -58,7 +70,7 @@ func (p *PostgresRepo) GetAllGroup(ctx context.Context) ([]models.Group, error) 
 
 		if err := rows.Scan(&gr.ID, &gr.NameGroup, &gr.Course); err != nil {
 
-			return []models.Group{}, err
+			return nil, err
 		}
 
 		groups = append(groups, gr)
@@ -75,6 +87,18 @@ func (p *PostgresRepo) CreateSubjects(ctx context.Context, name string) (int, er
 	query := "INSERT INTO Subjects(name_subjects) VALUES($1) RETURNING id_subjects"
 	err := p.db.QueryRow(ctx, query, name).Scan(&id)
 	return id, err
+}
+func (p *PostgresRepo) GetSubjectByName(ctx context.Context, name string) (models.Subject, error) {
+
+	var nameSub models.Subject
+
+	query := "SELECT name_subjects FROM Subjects WHERE id_subjects = $1"
+
+	if err := p.db.QueryRow(ctx, query, name).Scan(&nameSub.ID, &nameSub.NameSubjects); err != nil {
+
+		return models.Subject{}, err
+	}
+	return nameSub, nil
 }
 func (p *PostgresRepo) GetAllSubjects(ctx context.Context) ([]models.Subject, error) {
 
@@ -94,7 +118,7 @@ func (p *PostgresRepo) GetAllSubjects(ctx context.Context) ([]models.Subject, er
 		var s models.Subject
 
 		if err := rows.Scan(&s.ID, &s.NameSubjects); err != nil {
-			return []models.Subject{}, err
+			return nil, err
 		}
 		sub = append(sub, s)
 	}
@@ -109,6 +133,18 @@ func (p *PostgresRepo) CreateTeacherName(ctx context.Context, fullname string) (
 	err := p.db.QueryRow(ctx, query, fullname).Scan(&id)
 	return id, err
 }
+func (p *PostgresRepo) GetTeacherByName(ctx context.Context, name string) (models.Teacher, error) {
+
+	var nameTeach models.Teacher
+
+	query := "SELECT full_name FROM Teachers WHERE id_teach = $1"
+
+	if err := p.db.QueryRow(ctx, query, name).Scan(&nameTeach.ID, &nameTeach.FullName); err != nil {
+
+		return models.Teacher{}, err
+	}
+	return nameTeach, nil
+}
 func (p *PostgresRepo) GetAllTeachers(ctx context.Context) ([]models.Teacher, error) {
 
 	var tech []models.Teacher
@@ -118,7 +154,7 @@ func (p *PostgresRepo) GetAllTeachers(ctx context.Context) ([]models.Teacher, er
 	rows, err := p.db.Query(ctx, query)
 
 	if err != nil {
-		return []models.Teacher{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -127,7 +163,7 @@ func (p *PostgresRepo) GetAllTeachers(ctx context.Context) ([]models.Teacher, er
 		var t models.Teacher
 
 		if err := rows.Scan(&t.ID, &t.FullName); err != nil {
-			return []models.Teacher{}, err
+			return nil, err
 		}
 		tech = append(tech, t)
 	}
@@ -164,7 +200,7 @@ func (p *PostgresRepo) AddSchedules(ctx context.Context, schedule models.Schedul
 	}
 	return id, nil
 }
-func (p *PostgresRepo) GetSchedelesFileredByWeek(ctx context.Context, groupID int, weektype int) ([]models.ScheduleWithDetails, error) {
+func (p *PostgresRepo) GetSchedulesFilteredByWeek(ctx context.Context, groupID int, weektype int) ([]models.ScheduleWithDetails, error) {
 
 	var schedule []models.ScheduleWithDetails
 
@@ -180,7 +216,7 @@ func (p *PostgresRepo) GetSchedelesFileredByWeek(ctx context.Context, groupID in
 	rows, err := p.db.Query(ctx, query, groupID, weektype)
 
 	if err != nil {
-		return []models.ScheduleWithDetails{}, err
+		return nil, err
 	}
 	defer rows.Close()
 

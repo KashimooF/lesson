@@ -40,7 +40,7 @@ CREATE TABLE Teachers_subjects(
 
 );
 CREATE TABLE schema_migrations(
-    version INTEGER PRIMARY KEY UNIQUE, --Уникальный номер миграци
+    version INTEGER PRIMARY KEY, --Уникальный номер миграци
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 

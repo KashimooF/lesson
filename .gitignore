@@ -1,1 +1,14 @@
+# Бинарники
+main_app
+migrate_tool
+
+# Переменные окружения
 .env
+
+# Временные файлы
+*.log
+tmp/
+
+# IDE
+.vscode/
+.idea/
