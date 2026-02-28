@@ -39,10 +39,10 @@ CREATE TABLE Teachers_subjects(
     UNIQUE(teachers_id, subjects_id)
 
 );
-CREATE TABLE schema_migrations(
-    version INTEGER PRIMARY KEY, --Уникальный номер миграци
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+-- CREATE TABLE schema_migrations(
+--     version INTEGER PRIMARY KEY, --Уникальный номер миграци
+--     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
 
 CREATE INDEX  idx_groups ON Schedules(groups_id);
 CREATE INDEX  idx_subjects ON Schedules(subjects_id);

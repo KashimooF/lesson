@@ -1,4 +1,4 @@
-package api
+package main
 
 import (
 	"context"
@@ -179,9 +179,12 @@ func main() {
 
 	ctx := context.Background()
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Ошибка занрузки .env файла")
+		log.Println("Предупреждение: .env файл не найден, используются системные переменные")
 	}
 	dbUrl := os.Getenv("DATABASE_URL")
+	if dbUrl == "" {
+		log.Fatal("DATABASE_URL не установлена!")
+	}
 
 	db, err := pgxpool.New(ctx, dbUrl)
 
@@ -210,7 +213,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8080"
+		port = "5050"
 	}
 
 	addr := ":" + port

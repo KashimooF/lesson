@@ -1,4 +1,4 @@
-package migrate
+package main
 
 import (
 	"context"
@@ -23,10 +23,13 @@ func ConnectionDataMigrate(ctx context.Context) *pgxpool.Pool {
 
 	if err := godotenv.Load(); err != nil {
 
-		log.Fatal("Ошибка загрузки .env файла")
+		log.Println("Ошибка загрузки .env файла")
 	}
 
 	dbUrl := os.Getenv("DATABASE_URL")
+	if dbUrl == "" {
+		log.Fatal("DATABASE_URL не установлена!")
+	}
 
 	db, err := pgxpool.New(ctx, dbUrl)
 
