@@ -30,7 +30,7 @@ func (p *PostgresRepo) CreateGroup(ctx context.Context, name string, course int)
 func (p *PostgresRepo) GetGroupByName(ctx context.Context, name string) (models.Group, error) {
 	var nameGr models.Group
 
-	query := "SELECT name_group FROM Groups WHERE name_group = $1"
+	query := "SELECT id_group, name_group, course FROM Groups WHERE name_group = $1"
 
 	if err := p.db.QueryRow(ctx, query, name).Scan(&nameGr.ID, &nameGr.NameGroup, &nameGr.Course); err != nil {
 
@@ -92,7 +92,7 @@ func (p *PostgresRepo) GetSubjectByName(ctx context.Context, name string) (model
 
 	var nameSub models.Subject
 
-	query := "SELECT name_subjects FROM Subjects WHERE id_subjects = $1"
+	query := "SELECT id_subjects, name_subjects  FROM Subjects WHERE id_subjects = $1"
 
 	if err := p.db.QueryRow(ctx, query, name).Scan(&nameSub.ID, &nameSub.NameSubjects); err != nil {
 
@@ -137,7 +137,7 @@ func (p *PostgresRepo) GetTeacherByName(ctx context.Context, name string) (model
 
 	var nameTeach models.Teacher
 
-	query := "SELECT full_name FROM Teachers WHERE id_teach = $1"
+	query := "SELECT id_teach, full_name FROM Teachers WHERE id_teach = $1"
 
 	if err := p.db.QueryRow(ctx, query, name).Scan(&nameTeach.ID, &nameTeach.FullName); err != nil {
 
