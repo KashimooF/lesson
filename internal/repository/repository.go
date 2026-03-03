@@ -10,16 +10,20 @@ type SchedulesCollege interface {
 	GetGroupByID(ctx context.Context, id int) (models.Group, error)
 	GetGroupByName(ctx context.Context, name string) (models.Group, error)
 	GetAllGroup(ctx context.Context) ([]models.Group, error)
+	DeleteGroup(ctx context.Context, id int) error
 
 	CreateSubjects(ctx context.Context, name string) (int, error)
 	GetSubjectByName(ctx context.Context, name string) (models.Subject, error)
 	GetAllSubjects(ctx context.Context) ([]models.Subject, error)
-
+	DeleteSubject(ctx context.Context, id int) error
 	CreateTeacherName(ctx context.Context, fullname string) (int, error)
 	GetAllTeachers(ctx context.Context) ([]models.Teacher, error)
 	GetTeacherByName(ctx context.Context, fullname string) (models.Teacher, error)
 	LinkTeacherToSubject(ctx context.Context, teacherID int, subjectsID int) error
+	GetTeacherSubjects(ctx context.Context, teacherID int) ([]models.Subject, error)
 
 	AddSchedules(ctx context.Context, schedule models.Schedule) (int, error)
 	GetSchedulesFilteredByWeek(ctx context.Context, groupID int, weektype int) ([]models.ScheduleWithDetails, error)
+	GetScheduleByTeacher(ctx context.Context, teacherID int) ([]models.ScheduleWithDetails, error)
+	GetAllSchedules(ctx context.Context) ([]models.ScheduleWithDetails, error)
 }

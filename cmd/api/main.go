@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"marsh/internal/models"
 	"marsh/internal/repository"
@@ -43,7 +44,198 @@ func (h *Handler) HandlerGetGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+func (h *Handler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid Group", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+
+	if err := h.Repo.DeleteGroup(ctx, id); err != nil {
+		http.Error(w, "Fail to delete group", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+func (h *Handler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var reqData struct {
+		Name   string `json:"name"`
+		Course int    `json:"course"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		http.Error(w, "Invalid Json", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if reqData.Name == "" || reqData.Course < 1 || reqData.Course > 3 {
+		http.Error(w, "Invalid group data", http.StatusBadRequest)
+		return
+	}
+	ctx := r.Context()
+	id, err := h.Repo.CreateGroup(ctx, reqData.Name, reqData.Course)
+	if err != nil {
+		http.Error(w, "Failed to create group", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+
+}
+func (h *Handler) GetAllSubjects(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	subjects, err := h.Repo.GetAllSubjects(ctx)
+	if err != nil {
+		http.Error(w, "Failed to get subjects", http.StatusInternalServerError)
+		return
+	}
+
+	if subjects == nil {
+		subjects = []models.Subject{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(subjects)
+}
+func (h *Handler) CreateSubject(w http.ResponseWriter, r *http.Request) {
+	var requestData struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if requestData.Name == "" {
+		http.Error(w, "Subject name is required", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	id, err := h.Repo.CreateSubjects(ctx, requestData.Name)
+	if err != nil {
+		http.Error(w, "Failed to create subject", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+}
+func (h *Handler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid subject ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	if err := h.Repo.DeleteSubject(ctx, id); err != nil {
+		http.Error(w, "Failed to delete subject", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+func (h *Handler) GetAllTeachers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	teachers, err := h.Repo.GetAllTeachers(ctx)
+	if err != nil {
+		http.Error(w, "Failed to get teachers", http.StatusInternalServerError)
+		return
+	}
+
+	if teachers == nil {
+		teachers = []models.Teacher{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(teachers)
+}
+func (h *Handler) GetTeacherSubjects(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	teacherID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid teacher ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	subjects, err := h.Repo.GetTeacherSubjects(ctx, teacherID)
+	if err != nil {
+		http.Error(w, "Failed to get teacher subjects", http.StatusInternalServerError)
+		return
+	}
+
+	if subjects == nil {
+		subjects = []models.Subject{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(subjects)
+}
+func (h *Handler) CreateTeacher(w http.ResponseWriter, r *http.Request) {
+	var requestData struct {
+		FullName string `json:"full_name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if requestData.FullName == "" {
+		http.Error(w, "Teacher name is required", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	id, err := h.Repo.CreateTeacherName(ctx, requestData.FullName)
+	if err != nil {
+		http.Error(w, "Failed to create teacher", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
+}
+func (h *Handler) GetScheduleByTeacher(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	teacherID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid teacher ID", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	schedule, err := h.Repo.GetScheduleByTeacher(ctx, teacherID)
+	if err != nil {
+		http.Error(w, "Failed to get teacher schedule", http.StatusInternalServerError)
+		return
+	}
+
+	if schedule == nil {
+		schedule = []models.ScheduleWithDetails{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(schedule)
+}
 func (h *Handler) HandlerGetSchedule(w http.ResponseWriter, r *http.Request) {
 
 	groupName := chi.URLParam(r, "groupName")
@@ -98,6 +290,22 @@ func (h *Handler) HandlerGetSchedule(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(schedule); err != nil {
 		log.Printf("Error encoding schedule: %v", err)
 	}
+}
+func (h *Handler) GetAllSchedules(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	schedule, err := h.Repo.GetAllSchedules(ctx)
+	if err != nil {
+		http.Error(w, "Failed to get schedules", http.StatusInternalServerError)
+		return
+	}
+
+	if schedule == nil {
+		schedule = []models.ScheduleWithDetails{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(schedule)
 }
 
 func (h *Handler) HandlerCreateSchedule(w http.ResponseWriter, r *http.Request) {
@@ -206,9 +414,40 @@ func main() {
 
 	router := chi.NewRouter()
 
-	router.Post("/api/schedule", handler.HandlerCreateSchedule)
+	// CORS middleware
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Разрешаем запросы с любого источника
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+			// Обрабатываем preflight запросы
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	})
+
 	router.Get("/api/groups", handler.HandlerGetGroups)
+	router.Post("/api/groups", handler.CreateGroup)
+	router.Delete("/api/groups/{id}", handler.DeleteGroup)
+
+	router.Get("/api/subjects", handler.GetAllSubjects)
+	router.Post("/api/subjects", handler.CreateSubject)
+	router.Delete("/api/subjects/{id}", handler.DeleteSubject)
+
+	router.Get("/api/teachers", handler.GetAllTeachers)
+	router.Post("/api/teachers", handler.CreateTeacher)
+	router.Get("/api/teachers/{id}/subjects", handler.GetTeacherSubjects)
+
+	router.Get("/api/schedule", handler.GetAllSchedules)
+	router.Post("/api/schedule", handler.HandlerCreateSchedule)
 	router.Get("/api/schedule/{groupName}", handler.HandlerGetSchedule)
+	router.Get("/api/schedule/teacher/{id}", handler.GetScheduleByTeacher)
 
 	port := os.Getenv("PORT")
 

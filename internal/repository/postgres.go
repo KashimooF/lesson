@@ -79,6 +79,12 @@ func (p *PostgresRepo) GetAllGroup(ctx context.Context) ([]models.Group, error) 
 
 	return groups, rows.Err()
 }
+func (p *PostgresRepo) DeleteGroup(ctx context.Context, id int) error {
+	query := "DELETE FROM Groups WHERE id_group = $1"
+
+	_, err := p.db.Exec(ctx, query, id)
+	return err
+}
 
 func (p *PostgresRepo) CreateSubjects(ctx context.Context, name string) (int, error) {
 
@@ -125,6 +131,11 @@ func (p *PostgresRepo) GetAllSubjects(ctx context.Context) ([]models.Subject, er
 
 	return sub, rows.Err()
 }
+func (p *PostgresRepo) DeleteSubject(ctx context.Context, id int) error {
+	query := `DELETE FROM Subjects WHERE id_subjects = $1`
+	_, err := p.db.Exec(ctx, query, id)
+	return err
+}
 func (p *PostgresRepo) CreateTeacherName(ctx context.Context, fullname string) (int, error) {
 
 	var id int
@@ -170,7 +181,68 @@ func (p *PostgresRepo) GetAllTeachers(ctx context.Context) ([]models.Teacher, er
 
 	return tech, rows.Err()
 }
+func (p *PostgresRepo) GetTeacherSubjects(ctx context.Context, teacherID int) ([]models.Subject, error) {
+	var subjects []models.Subject
 
+	query := `
+        SELECT s.id_subjects, s.name_subjects 
+        FROM Subjects s
+        JOIN Teachers_subjects ts ON s.id_subjects = ts.subjects_id
+        WHERE ts.teachers_id = $1
+        ORDER BY s.name_subjects
+    `
+
+	rows, err := p.db.Query(ctx, query, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sub models.Subject
+		if err := rows.Scan(&sub.ID, &sub.NameSubjects); err != nil {
+			return nil, err
+		}
+		subjects = append(subjects, sub)
+	}
+
+	return subjects, rows.Err()
+}
+func (p *PostgresRepo) GetScheduleByTeacher(ctx context.Context, teacherID int) ([]models.ScheduleWithDetails, error) {
+	var schedule []models.ScheduleWithDetails
+
+	query := `
+        SELECT s.id_schedule, s.groups_id, s.subjects_id, s.teachers_id,
+               s.days_of_week, s.number_par, s.week_type, 
+               g.name_group, sub.name_subjects, t.full_name
+        FROM Schedules s
+        JOIN Groups g ON s.groups_id = g.id_group
+        JOIN Subjects sub ON s.subjects_id = sub.id_subjects
+        JOIN Teachers t ON s.teachers_id = t.id_teach
+        WHERE s.teachers_id = $1
+        ORDER BY s.days_of_week, s.number_par
+    `
+
+	rows, err := p.db.Query(ctx, query, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sc models.ScheduleWithDetails
+		if err := rows.Scan(
+			&sc.ID, &sc.GroupsId, &sc.SubjectsId, &sc.TeachersId,
+			&sc.DaysOfWeek, &sc.NumberPar, &sc.WeekType,
+			&sc.NameGroup, &sc.NameSubjects, &sc.FullName,
+		); err != nil {
+			return nil, err
+		}
+		schedule = append(schedule, sc)
+	}
+
+	return schedule, rows.Err()
+}
 func (p *PostgresRepo) LinkTeacherToSubject(ctx context.Context, teacherID int, subjectsID int) error {
 
 	query := `INSERT INTO Teachers_subjects(teachers_id,subjects_id) 
@@ -236,4 +308,38 @@ func (p *PostgresRepo) GetSchedulesFilteredByWeek(ctx context.Context, groupID i
 
 	return schedule, rows.Err()
 
+}
+func (p *PostgresRepo) GetAllSchedules(ctx context.Context) ([]models.ScheduleWithDetails, error) {
+	var schedule []models.ScheduleWithDetails
+
+	query := `
+        SELECT s.id_schedule, s.groups_id, s.subjects_id, s.teachers_id,
+               s.days_of_week, s.number_par, s.week_type, 
+               g.name_group, sub.name_subjects, t.full_name
+        FROM Schedules s
+        JOIN Groups g ON s.groups_id = g.id_group
+        JOIN Subjects sub ON s.subjects_id = sub.id_subjects
+        JOIN Teachers t ON s.teachers_id = t.id_teach
+        ORDER BY g.name_group, s.days_of_week, s.number_par
+    `
+
+	rows, err := p.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sc models.ScheduleWithDetails
+		if err := rows.Scan(
+			&sc.ID, &sc.GroupsId, &sc.SubjectsId, &sc.TeachersId,
+			&sc.DaysOfWeek, &sc.NumberPar, &sc.WeekType,
+			&sc.NameGroup, &sc.NameSubjects, &sc.FullName,
+		); err != nil {
+			return nil, err
+		}
+		schedule = append(schedule, sc)
+	}
+
+	return schedule, rows.Err()
 }
