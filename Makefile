@@ -1,4 +1,4 @@
-.PHONY: migrate-up migrate-down run docker-up docker-down build clean
+.PHONY: migrate-up migrate-down run docker-up docker-down build clean  
 
 migrate-up:
 	go run cmd/migrate/main.go -command up
